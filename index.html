@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>执行器</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+	<script type="importmap">
+		{
+			"imports": {
+				"three": "./js/three.module.js"
+			}
+		}
+	</script>
+
+	<script type="module">
+
+		import * as THREE from 'three';
+		import { OrbitControls } from './jsm/controls/OrbitControls.js';
+		import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
+		import { RGBELoader } from './jsm/loaders/RGBELoader.js';
+
+
+		// Our Javascript will go here.
+		const scene = new THREE.Scene();
+		const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+		const renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		document.body.appendChild(renderer.domElement);
+
+		renderer.setPixelRatio(devicePixelRatio);
+		renderer.outputEncoding = THREE.sRGBEncoding;
+		renderer.toneMappingExposure = 1; // 曝光系数
+
+		//控制器
+		const controls = new OrbitControls(camera, renderer.domElement);
+		controls.target = new THREE.Vector3(0, 50, 0);	//如果使用了OrbitControls则lookAt方法失效，需要使用OrbitControls里的target方法
+		camera.position.set(50, 160, 60);
+		// camera.lookAt(new THREE.Vector3(10, 0, 20));	//如果使用了OrbitControls则lookAt方法失效，需要使用OrbitControls里的target方法
+		controls.update();	//更改target属性之后，需要调用update方法来更新相机方向，不然不起作用
+
+		//辅助线
+		// const helper = new THREE.CameraHelper(camera);	//相机辅助
+		// scene.add(helper);
+		// var axes = new THREE.AxesHelper(100);	//坐标辅助
+		// scene.add(axes);
+
+		//添加环境
+
+		scene.background = new THREE.Color(0xc2c2c2);
+		scene.environment = new RGBELoader().load('./textures/equirectangular/brown_photostudio_2k.hdr', function () {
+			scene.environment.mapping = THREE.EquirectangularReflectionMapping;
+
+			//加载3D文件
+			const loader = new GLTFLoader();
+
+			loader.load('models/执行器.glb', function (gltf) {
+				
+				scene.add(gltf.scene);
+				// console.log(gltf.scene, '111');
+
+			}, undefined, function (error) {
+
+				console.error(error);
+
+			});
+		});
+
+		function animate() {
+			requestAnimationFrame(animate);
+			controls.update();
+			renderer.render(scene, camera);
+		}
+		animate();
+
+	</script>
+</body>
+
+</html>
